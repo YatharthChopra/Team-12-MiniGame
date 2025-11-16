@@ -8,16 +8,16 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Ground
+  - 
   - Water
   - UI
-  - 6. Collide All
-  - 7. Collide 6,8,9  Ignore Self
-  - 8. Collide 6,7,9  Ignore Self
-  - 9. Collide 6,7,8  Ignore Self
-  - 10. Collide 6 and Self 10
-  - 11. Collide 6 and Self 11
-  - 12. Collide 6 and Self 12
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 
