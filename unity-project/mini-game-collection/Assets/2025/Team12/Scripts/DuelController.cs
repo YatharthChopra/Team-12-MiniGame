@@ -32,15 +32,29 @@ namespace MiniGameCollection.Games2025.Team12
 
         public event Action<RoundResult> OnRoundEnd;
 
-        [SerializeField] private DuelAction p1Target = DuelAction.Action1;
-        [SerializeField] private DuelAction p2Target = DuelAction.Action1;
+        [SerializeField] private DuelAction[] p1Targets = {DuelAction.Up, DuelAction.Action1, DuelAction.Action2, DuelAction.Down, DuelAction.Left };
+        [SerializeField] private DuelAction[] p2Targets = {DuelAction.Up, DuelAction.Action1, DuelAction.Action2, DuelAction.Down, DuelAction.Left };
 
-        public void SetTargets(DuelAction p1, DuelAction p2)
+        [SerializeField] private int p1count = 0;
+        [SerializeField] private int p2count = 0;
+
+        public void SetTargets(DuelAction[] p1, DuelAction[] p2)
         {
-            p1Target = p1;
-            p2Target = p2;
-            if (p1PromptText) p1PromptText.text = $"Target: {Pretty(p1Target)}";
-            if (p2PromptText) p2PromptText.text = $"Target: {Pretty(p2Target)}";
+            string temp = "";
+            p1Targets = p1;
+            p2Targets = p2;
+            foreach (var target in p1Targets)
+            {
+                temp += "\n" + Pretty(target);
+            }
+            if (p1PromptText) p1PromptText.text = $"Target: {temp}";
+            temp = "";
+            foreach (var target in p2Targets)
+            {
+                temp += "\n" + Pretty(target);
+            }
+            if (p2PromptText) p2PromptText.text = $"Target: {temp}";
+
         }
 
         // ========== EVENTS ==========
@@ -66,15 +80,26 @@ namespace MiniGameCollection.Games2025.Team12
             firstStamp = float.MaxValue;
         }
 
+
         protected override void OnTimerUpdate(float _)
         {
             if (!inputsEnabled) return;
-
             var p1Pressed = ReadPressed(PlayerID.Player1);
             var p2Pressed = ReadPressed(PlayerID.Player2);
-
-            bool p1Ok = (p1Pressed == p1Target);
-            bool p2Ok = (p2Pressed == p2Target);
+            
+            bool p1Ok = (p1Pressed == p1Targets[p1count]);
+            bool p2Ok = (p2Pressed == p2Targets[p2count]);
+            if (p1Ok && p1count < 4)
+            { // goes through the combo
+                p1count++;
+                p1Ok = false;
+                
+            }
+            if (p2Ok && p2count < 4)
+            { // goes through the combo
+                p2count++;
+                p2Ok = false;
+            }
 
             if (p1Ok) RegisterPress(RoundResult.P1);
             if (p2Ok) RegisterPress(RoundResult.P2);
@@ -119,7 +144,8 @@ namespace MiniGameCollection.Games2025.Team12
         {
             if (!inputsEnabled) return;
             inputsEnabled = false;
-
+            p1count = 0; // resets combo count
+            p2count = 0; // resets combo count
             // play win/lose sound ON TOP of current start sound
             if (result == RoundResult.P1 || result == RoundResult.P2)
                 if (winSound != null) audioSource.PlayOneShot(winSound);
@@ -139,7 +165,7 @@ namespace MiniGameCollection.Games2025.Team12
             const float dead = 0.6f;
             float x = p.AxisX;
             float y = p.AxisY;
-
+            
             if (Mathf.Abs(y) < dead)
             {
                 if (x <= -dead) return DuelAction.Left;
