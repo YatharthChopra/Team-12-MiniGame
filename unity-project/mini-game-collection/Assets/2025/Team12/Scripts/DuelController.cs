@@ -10,7 +10,6 @@ namespace MiniGameCollection.Games2025.Team12
     {
         public enum RoundResult { None, P1, P2, Draw }
         public enum DuelAction { Up, Down, Left, Right, Action1, Action2, None }
-
         [Header("UI (assign from scene)")]
         [SerializeField] private TMP_Text countdownText;
         [SerializeField] private TMP_Text p1PromptText;
@@ -25,13 +24,14 @@ namespace MiniGameCollection.Games2025.Team12
 
         [Header("Settings")]
         [SerializeField] private float simultaneousEpsilon = 0.06f;
-
+        
         private bool inputsEnabled = false;
         private RoundResult firstWho = RoundResult.None;
         private float firstStamp = float.MaxValue;
 
         public event Action<RoundResult> OnRoundEnd;
 
+        private bool firstRun = false;
         [SerializeField] private DuelAction[] p1Targets = {DuelAction.Up, DuelAction.Action1, DuelAction.Action2, DuelAction.Down, DuelAction.Left };
         [SerializeField] private DuelAction[] p2Targets = {DuelAction.Up, DuelAction.Action1, DuelAction.Action2, DuelAction.Down, DuelAction.Left };
 
@@ -83,12 +83,19 @@ namespace MiniGameCollection.Games2025.Team12
 
         protected override void OnTimerUpdate(float _)
         {
+            
             if (!inputsEnabled) return;
+            if (!firstRun)
+            {
+                this.GetComponent<DuelRandomizer>().ArmNextRound();
+                firstRun = true;
+            }
             var p1Pressed = ReadPressed(PlayerID.Player1);
             var p2Pressed = ReadPressed(PlayerID.Player2);
             
             bool p1Ok = (p1Pressed == p1Targets[p1count]);
             bool p2Ok = (p2Pressed == p2Targets[p2count]);
+            //Debug.Log(p1Ok);
             if (p1Ok && p1count < 4)
             { // goes through the combo
                 p1count++;
@@ -143,15 +150,17 @@ namespace MiniGameCollection.Games2025.Team12
         private void EndRound(RoundResult result)
         {
             if (!inputsEnabled) return;
-            inputsEnabled = false;
+            //inputsEnabled = false;
             p1count = 0; // resets combo count
             p2count = 0; // resets combo count
+
             // play win/lose sound ON TOP of current start sound
             if (result == RoundResult.P1 || result == RoundResult.P2)
                 if (winSound != null) audioSource.PlayOneShot(winSound);
             if (result == RoundResult.Draw)
                 if (loseSound != null) audioSource.PlayOneShot(loseSound);
-
+            firstWho = RoundResult.None;
+            firstStamp = float.MaxValue;
             OnRoundEnd?.Invoke(result);
         }
 
